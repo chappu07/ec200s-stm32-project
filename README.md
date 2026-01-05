@@ -1,154 +1,102 @@
-STM32 + EC200S MQTT Temperature & Humidity Publisher
+# STM32–EC200S MQTT Temperature and Humidity Publisher
 
-This project demonstrates publishing DHT11 temperature and humidity data to an MQTT broker using an STM32 microcontroller and the Quectel EC200S LTE Cat-1 module via AT commands.
+## Overview
 
-It uses raw AT command control, not any high-level MQTT library.
-If you’re scared of AT commands, stop reading now.
+This project implements an IoT data publishing system using an STM32
+microcontroller, a Quectel EC200S LTE Cat-1 cellular module, and a DHT11
+temperature and humidity sensor. Sensor data is published periodically
+to a public MQTT broker using AT commands over UART communication.
 
-Hardware Used
-4
-Component	Purpose
-STM32 (Blue Pill / compatible)	Main controller
-Quectel EC200S	LTE Cat-1 cellular modem
-DHT11	Temperature & humidity sensor
-FTDI USB-TTL	Debug output
-SIM card (Airtel tested)	Cellular connectivity
-System Overview
+The implementation directly controls the cellular modem without using
+high-level MQTT libraries, making it suitable for embedded and cellular
+IoT applications.
 
-Data flow (simple and deterministic):
+## Features
 
-STM32 reads temperature & humidity from DHT11
+- Temperature and humidity measurement using DHT11
+- Cellular connectivity via EC200S LTE Cat-1 module
+- MQTT communication using AT commands
+- JSON-formatted sensor data publishing
+- UART-based serial debugging
 
-STM32 communicates with EC200S over UART
+## Hardware Requirements
 
-EC200S establishes cellular data session
+- STM32 microcontroller (STM32F103 or compatible)
+- Quectel EC200S LTE Cat-1 module
+- DHT11 temperature and humidity sensor
+- FTDI USB to TTL converter
+- SIM card with data plan
+- Stable external power supply
 
-MQTT connection is opened to a public broker
+## Pin Configuration
 
-Sensor data is published as JSON every 5 seconds
+DHT11 Connection:
+- DATA pin connected to PA5
 
-No cloud SDKs. No abstraction layers. Full control.
+UART Connections:
+- UART3 (PB11 RX, PB10 TX) connected to EC200S
+- UART2 (PA3 TX, PA2 RX) connected to FTDI for debugging
 
-Pin Configuration
-DHT11
-Signal	STM32 Pin
-DATA	PA5
-UART Connections
-Purpose	STM32 Pins	Device
-UART3	PB11 (RX), PB10 (TX)	EC200S
-UART2	PA3 (TX), PA2 (RX)	FTDI (Debug)
-MQTT Configuration
-Parameter	Value
-Broker	broker.hivemq.com
-Port	1883
-Topic	test/safwan
-Client ID	stm32client
-Payload format	JSON
+## MQTT Configuration
 
-Example payload:
+Broker   : broker.hivemq.com  
+Port     : 1883  
+Topic    : test/safwan  
+Client ID: stm32client  
 
-{"temp":29.4,"hum":63.0}
+Payload format (JSON example):
+{"temp":28.6,"hum":62.0}
 
-Cellular APN
+## Cellular Network Configuration
 
-This project is tested with Airtel India.
+The project is tested with Airtel (India).
 
 APN: airtelgprs.com
 
+For other network providers, update the APN accordingly in the source code.
 
-If you’re using a different carrier and it doesn’t work, that’s not a bug—update the APN.
+## Software Requirements
 
-Software Requirements
+- Arduino IDE
+- STM32 Arduino Core (STM32duino)
+- DHT Sensor Library
 
-Arduino IDE
-
-STM32 Arduino Core (STM32duino)
-
-DHT Sensor Library
-
-Install STM32 core via Boards Manager:
-
+STM32 Board Manager URL:
 https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
 
-How It Works (AT Command Flow)
+## Working Principle
 
-The EC200S is controlled entirely via AT commands:
+1. STM32 initializes the DHT sensor and UART interfaces
+2. EC200S registers to the cellular network
+3. PDP context is activated using APN configuration
+4. MQTT connection is established with the broker
+5. Sensor data is read and published every 5 seconds
 
-SIM & network checks
+All modem interactions are handled using AT commands.
 
-AT
-AT+CPIN?
-AT+CREG?
-AT+CGATT?
+## Expected Serial Output
 
-
-PDP context configuration
-
-AT+QICSGP=1,1,"airtelgprs.com","","",1
-AT+QIACT=1
-
-
-MQTT setup and connection
-
-AT+QMTOPEN
-AT+QMTCONN
-
-
-Data publish
-
-AT+QMTPUB
-
-
-If you don’t understand these commands, learn them—don’t blindly copy code.
-
-Expected Serial Output
-
-On successful operation, you should see:
-
+=== EC200S MQTT (PUBLIC BROKER) BEGIN ===
 MQTT CONNECTED!
-Published: {"temp":28.7,"hum":61.2}
+Published: {"temp":29.1,"hum":60.4}
 
+## Notes and Limitations
 
-If you don’t see >, your broker or network is blocking publishes.
-This is not an Arduino issue.
+- EC200S requires a stable power supply with sufficient current
+- Incorrect APN settings will prevent network attachment
+- DHT11 sensor readings may fail due to wiring issues
+- MQTT publish may fail if the broker restricts the connection
 
-Common Failure Causes (Read This Before Asking)
-Problem	Cause
-No MQTT publish	Broker policy or blocked port
-No network	Wrong APN or weak signal
-DHT FAILED	Bad wiring or fake DHT11
-Random hangs	Power supply instability
+## Future Enhancements
 
-Power the EC200S properly. USB power is not enough.
+- Support for MQTT QoS levels
+- Secure MQTT communication (TLS)
+- Automatic reconnection handling
+- Additional sensor integration
+- Power optimization
 
-Why This Project Matters
+## Author
 
-Teaches real embedded networking
-
-Uses industrial LTE module.
-
-Shows direct MQTT control without libraries
-
-Suitable base for IoT products, not demos
-
-If you think this is “just another Arduino project,” you missed the point.
-
-Future Improvements (Do These Instead of Bragging)
-
-QoS 1 publish
-
-Last Will & Testament
-
-Dynamic topic naming
-
-Sensor fault reporting
-
-Power-fail recovery
-
-Secure MQTT (TLS)
-
-Author
-
-Mahammad Safwan T
-Electronics & Communication Engineering
-Embedded Systems | IoT | Cellular Networking
+Safwan T  
+Electronics and Communication Engineering  
+Embedded Systems and IoT
